@@ -21,4 +21,31 @@ class TimerData: NSObject,UNUserNotificationCenterDelegate,ObservableObject {
     // TimerView Data...
     @Published var timerViewOffset: CGFloat = UIScreen.main.bounds.height
     @Published var timerHeightChange: CGFloat = 0
+    
+    // Getting Time When It Leaves The app...
+    @Published var leftTime: Date = Date()
+    
+    func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
+        
+        // Telling what to do when received in foreground...
+        completionHandler([.banner, .sound])
+    }
+    
+    // onTap...
+    func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) {
+        
+        // When Tap resetting view...
+        print("Notification Tapped")
+        completionHandler()
+    }
+    
+    func resetView() {
+        withAnimation(.default){
+            time = 0
+            selectedTime = 0
+            timerHeightChange = 0
+            timerViewOffset = UIScreen.main.bounds.height
+            buttonAnimation = false
+        }
+    }
 }

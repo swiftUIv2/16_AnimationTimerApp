@@ -11,7 +11,7 @@ import UserNotifications
 
 struct Home: View {
     
-    @StateObject var data = TimerData()
+    @EnvironmentObject var data: TimerData
     
     var body: some View {
         ZStack {
@@ -62,6 +62,7 @@ struct Home: View {
                     withAnimation(Animation.easeIn.delay(0.6)) {
                         data.timerViewOffset = 0
                     }
+                    performNotifications()
                 }, label: {
                     Circle()
                         .fill(Color("pink"))
@@ -99,6 +100,7 @@ struct Home: View {
             if data.time != 0 && data.selectedTime != 0 && data.buttonAnimation {
                 //Counting timer....
                 data.selectedTime -= 1
+//                performNotifications()
                 
                 // Updating Height...
                 let ProgressHeight = UIScreen.main.bounds.height / CGFloat(data.time)
@@ -111,13 +113,7 @@ struct Home: View {
                 
                 if data.selectedTime == 0{
                     // Resetting...
-                    withAnimation(.default){
-                        data.time = 0
-                        data.selectedTime = 0
-                        data.timerHeightChange = 0
-                        data.timerViewOffset = UIScreen.main.bounds.height
-                        data.buttonAnimation = false
-                    }
+                    data.resetView()
                 }
             }
         })
@@ -128,8 +124,26 @@ struct Home: View {
             }
             
             // Setting Delegate For in - App notifications...
-            
+            UNUserNotificationCenter.current().delegate = data 
         })
+    }
+    
+    func performNotifications() {
+        let content = UNMutableNotificationContent()
+        content.title = "Notification From EmmGR"
+        content.body = "Timer Has Been Finished"
+        
+        // Triggering at selected Timer...
+        // For eg 5 seconds means after 5 seconds...
+        
+        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: TimeInterval(data.time), repeats: false)
+        let request = UNNotificationRequest(identifier: "TIMER", content: content, trigger: trigger)
+        
+        UNUserNotificationCenter.current().add(request) { (err) in
+            if err != nil {
+                print(err!.localizedDescription)
+            }
+        }
     }
 }
 
