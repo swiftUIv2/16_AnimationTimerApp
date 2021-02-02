@@ -6,10 +6,11 @@
 //
 
 import SwiftUI
+import UserNotifications
 
 // timer model and data ...
 
-class TimerData: ObservableObject {
+class TimerData: NSObject,UNUserNotificationCenterDelegate,ObservableObject {
     
     @Published var time: Int = 0
     @Published var selectedTime: Int = 0
@@ -19,5 +20,5 @@ class TimerData: ObservableObject {
     
     // TimerView Data...
     @Published var timerViewOffset: CGFloat = UIScreen.main.bounds.height
-    
+    @Published var timerHeightChange: CGFloat = 0
 }

@@ -6,6 +6,8 @@
 //
 
 import SwiftUI
+// Sending Notification...
+import UserNotifications
 
 struct Home: View {
     
@@ -45,6 +47,7 @@ struct Home: View {
                 })
                 // Setting to center...
                 .offset(y: 40)
+                .opacity(data.buttonAnimation ? 0 : 1)
                 
                 Spacer()
                 
@@ -52,6 +55,12 @@ struct Home: View {
                 Button(action: {
                     withAnimation(Animation.easeInOut(duration: 0.65)){
                         data.buttonAnimation.toggle()
+                    }
+                    
+                    // Delay Animation...
+                    // after Button goes Down View is moving up...
+                    withAnimation(Animation.easeIn.delay(0.6)) {
+                        data.timerViewOffset = 0
                     }
                 }, label: {
                     Circle()
@@ -63,20 +72,64 @@ struct Home: View {
                 .disabled(data.time == 0)
                 .opacity(data.time == 0 ? 0.6 : 1)
                 
+                
                 // Moving down Smoothly...
                 .offset(y: data.buttonAnimation ? 300 : 0)
             }
+            
            Color("pink")
-            .ignoresSafeArea(.all, edges: .all)
+            // Decreasing Height For Each Count...
             .overlay(
                 Text("\(data.selectedTime)")
                     .font(.system(size: 55, weight: .heavy))
                     .foregroundColor(.white)
             )
+
+            .frame(height: UIScreen.main.bounds.height - data.timerHeightChange)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
+            .ignoresSafeArea(.all, edges: .all)
             .offset(y: data.timerViewOffset)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color("bg").ignoresSafeArea(.all, edges: .all))
+        
+        // Timer Functionality...
+        .onReceive(Timer.publish(every: 1, on: .main, in: .common).autoconnect(), perform: { _ in
+            // Conditions...
+            if data.time != 0 && data.selectedTime != 0 && data.buttonAnimation {
+                //Counting timer....
+                data.selectedTime -= 1
+                
+                // Updating Height...
+                let ProgressHeight = UIScreen.main.bounds.height / CGFloat(data.time)
+                
+                let diff = data.time - data.selectedTime
+                
+                withAnimation(.default){
+                    data.timerHeightChange = CGFloat(diff) * ProgressHeight
+                }
+                
+                if data.selectedTime == 0{
+                    // Resetting...
+                    withAnimation(.default){
+                        data.time = 0
+                        data.selectedTime = 0
+                        data.timerHeightChange = 0
+                        data.timerViewOffset = UIScreen.main.bounds.height
+                        data.buttonAnimation = false
+                    }
+                }
+            }
+        })
+        .onAppear(perform: {
+            // Permissions...
+            UNUserNotificationCenter.current().requestAuthorization(options: [.badge,.sound,.alert]) { (_, _) in
+                
+            }
+            
+            // Setting Delegate For in - App notifications...
+            
+        })
     }
 }
 
